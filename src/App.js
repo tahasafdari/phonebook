@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import Persons from "./components/Persons";
 import Filter from "./components/Filter";
+import PersonForm from "./components/PersonForm";
 
 const App = () => {
     const [persons, setPersons] = useState([
@@ -23,10 +24,8 @@ const App = () => {
         const personsArray = persons.map(e => e.name)
         const nameObject = {
             name: newName,
-            number: newNumber,
-
+            number: newNumber
         }
-
         if(personsArray.includes(`${nameObject.name}`)) {
             window.confirm(`${newName} is already added to phonebook`)
         } else {
@@ -53,25 +52,26 @@ const App = () => {
 
     const nameToShow = showName ? persons : persons.filter(person => person.important)
 
+    const addPersonData = {
+        newName,
+        newNumber,
+        handleNameChange,
+        handleNumberChange
+    }
+
+
     return (
         <div>
             <h2>Phonebook</h2>
             <Filter onChange={handleFilterChange} value={filter} />
             <h2>add a new</h2>
-            <form onSubmit={addName}>
-                <div>
-                    name: <input
-                    value={newName} onChange={handleNameChange}
-                />
-                </div>
-                <div>number: <input value={newNumber} onChange={handleNumberChange}/></div>
-                <div>
-                    <button type="submit">add</button>
-                </div>
-            </form>
+
+
+            <PersonForm addName={addName}  data={addPersonData} />
+
             <h2>Numbers</h2>
             <p>
-                { (filter != "") ? filterPersons.map(person =>
+                { (filter !== "") ? filterPersons.map(person =>
                     <Persons key={person.name} person={person} number={person.number}/>
                 ) : nameToShow.map(person =>
                     <Persons key={person.name} person={person} number={person.number}/>
