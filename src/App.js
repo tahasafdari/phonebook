@@ -5,6 +5,9 @@ import Filter from "./components/Filter";
 import PersonForm from "./components/PersonForm";
 import personService from './services/person'
 
+import './index.css'
+import Notification from "./components/Notification";
+
 const App = () => {
     const [persons, setPersons] = useState([])
     const [newName, setNewName] = useState('')
@@ -13,14 +16,14 @@ const App = () => {
 
     const [filter, setFilter] = useState('')
     const [filterPersons, setFilterPersons] = useState(persons)
-    const [message , setMessage] = useState(null)
+    const [message, setMessage] = useState(null)
 
 
     useEffect(() => {
         personService
             .getAll()
             .then(initialPersons => {
-              setPersons(initialPersons)
+                setPersons(initialPersons)
             })
     }, [])
 
@@ -34,27 +37,61 @@ const App = () => {
         }
 
         const existEntry = persons.find(p => p.name === newName)
-
-        if(personsArray.includes(`${nameObject.name}`)) {
-           const r =  window.confirm(`${newName} is already added to phonebook, replace the old number with a new one? `)
-            if(r) {
+        if (personsArray.includes(`${nameObject.name}`)) {
+            const r = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one? `)
+            if (r) {
                 personService
                     .update(existEntry.id, nameObject)
                     .then(response => {
                         setPersons(
-                            persons.map(p => p.id !== response ? p : response)
-                        )
+                            persons.map(p => p.id !== response ? p : response))
+
+                        setMessage({
+                            text: `Edited ${response.name}`,
+                            type: "success"
+                        })
+                        setTimeout(() => {
+                            setMessage(null)
+                        }, 3000)
                     })
+                    .catch(error => {
+                        setMessage({
+                            text: error.response.data.error,
+                            type: "error"
+                        })
+                        setTimeout(() => {
+                            setMessage(null)
+                        }, 3000)
+                    })
+                setNewName('')
+                setNewNumber('')
+
             }
         } else {
-
             personService
                 .create(nameObject)
                 .then(returnName => {
                     setPersons(persons.concat(returnName))
-                    setNewName('')
-                    setNewNumber('')
+                    setMessage({
+                        text: `Added ${returnName.name}`,
+                        type: "success",
+                    })
+                    setTimeout(() => {
+                        setMessage(null)
+                    }, 3000)
                 })
+                .catch(error => {
+                    setMessage({
+                        text: error.response.data.error,
+                        type: "error"
+                    })
+                    setTimeout(() => {
+                        setMessage(null)
+
+                    }, 3000)
+                })
+            setNewName('')
+            setNewNumber('')
         }
     }
 
@@ -65,6 +102,13 @@ const App = () => {
             personService
                 .deletePerson(person.id)
                 .then(persons => setPersons(persons))
+            setMessage({
+                text: `${person.name} has removed`,
+                type: "success"
+            })
+            setTimeout(() => {
+                setMessage(null)
+            }, 3000)
         }
     }
 
@@ -94,24 +138,23 @@ const App = () => {
     }
 
 
-
-
     return (
         <div>
             <h2>Phonebook</h2>
-            <Filter onChange={handleFilterChange} value={filter} />
+            <Notification message={message}/>
+            <Filter onChange={handleFilterChange} value={filter}/>
             <h2>add a new</h2>
 
 
-            <PersonForm addName={addName}  data={addPersonData} />
+            <PersonForm addName={addName} data={addPersonData}/>
 
             <h2>Numbers</h2>
             <p>
-                { (filter !== "") ? filterPersons.map(person =>
-                    <Persons key={person.name} person={person} number={person.number} />
+                {(filter !== "") ? filterPersons.map(person =>
+                    <Persons key={person.name} person={person} number={person.number}/>
                 ) : nameToShow.map(person =>
                     <Persons key={person.name} person={person} number={person.number}
-                             deleteEntry={() => deletePerson(person)} />)}
+                             deleteEntry={() => deletePerson(person)}/>)}
             </p>
         </div>
     )
